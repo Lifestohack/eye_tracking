@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0,'/external')
-
 import os
 import numpy as np
 import cv2
