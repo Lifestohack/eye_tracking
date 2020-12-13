@@ -42,7 +42,7 @@ def get_raw_data(sample):
     cap.release()
 
 
-def export_csv(sample):
+def export_raw_data_to_csv(sample):
     video_sample = os.path.join(sample, "world.mp4")
     save_path = os.path.join(sample, "calibration_markers.csv")
     with open(save_path, "a", newline="") as csvfile:
@@ -61,4 +61,4 @@ def export_csv(sample):
 if __name__ == "__main__":
     samples_path = "data"
     samples = get_samples(samples_path)
-    export_csv(samples[-1])
+    export_raw_data_to_csv(samples[-1])
