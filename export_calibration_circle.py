@@ -24,9 +24,9 @@ def get_raw_data(sample):
             yield marker_list
 
 
-def export_raw_data_to_csv(sample):
+def export_raw_data_to_csv(sample, save_file_name):
     video_sample = os.path.join(sample, "world.mp4")
-    save_path = os.path.join(sample, "calibration_markers.csv")
+    save_path = os.path.join(sample, save_file_name)
     with open(save_path, "a", newline="") as csvfile:
         fieldnames = [
             "world_index",
@@ -42,4 +42,4 @@ def export_raw_data_to_csv(sample):
 
 if __name__ == "__main__":
     samples = get_sample_paths()
-    export_raw_data_to_csv(samples[-1])
+    export_raw_data_to_csv(samples[-1], "calibration_markers.csv")
