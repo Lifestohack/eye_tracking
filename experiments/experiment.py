@@ -3,6 +3,7 @@ import numpy as np
 import random
 from copy import deepcopy
 
+fps = 30
 background = (255, 255, 255)  # white
 calibration_marker_color = (0, 0, 0)  # black
 outer_circle_radius = 20
@@ -30,7 +31,7 @@ px = frame_size[0] // 2
 py = frame_size[1] // 2
 
 out = cv2.VideoWriter(
-    "calibration_markers.avi", cv2.VideoWriter_fourcc(*"DIVX"), 30, frame_size
+    "calibration_markers.avi", cv2.VideoWriter_fourcc(*"DIVX"), fps, frame_size
 )
 
 
@@ -47,6 +48,30 @@ def get_initial_image():
 def get_image_with_markers(img, center):
     img = cv2.circle(
         img, center, 10 * calibration_markers_scale, calibration_marker_color, -1
+    )
+    img = cv2.drawMarker(
+        img, center, (0, 0, 255), cv2.MARKER_CROSS, 2 * calibration_markers_scale, 2, 1
+    )
+    img = cv2.circle(
+        img,
+        center,
+        outer_circle_radius * calibration_markers_scale,
+        calibration_marker_color,
+        outer_circle_thickness * calibration_markers_scale,
+    )
+    return img
+
+
+def get_image_with_stop_markers(img, center, calibration_markers_scale):
+    img = cv2.drawMarker(
+        img, center, (0, 0, 255), cv2.MARKER_CROSS, 2 * calibration_markers_scale, 2, 1
+    )
+    img = cv2.circle(
+        img,
+        center,
+        8 * calibration_markers_scale,
+        calibration_marker_color,
+        5 * calibration_markers_scale,
     )
     img = cv2.circle(
         img,
@@ -130,6 +155,7 @@ def pursuit():
         draw(
             frame_size, (0, frame_size[1]), (frame_size[0], 0), i
         )  # From left down to right top
+    draw_stop_markers(2)
 
 
 def fixation():
@@ -141,6 +167,7 @@ def fixation():
         draw(
             frame_size, center, center, speeds[-3]
         )  # moves from center to center, basically not moving at all
+    draw_stop_markers(2)
 
 
 def saccade():
@@ -186,6 +213,7 @@ def saccade():
         draw_switch(
             frame_size, (px3, py3), (px2, py2), speeds[-1]
         )  # down left to down right
+    draw_stop_markers(2)
 
 
 def jump():
@@ -207,6 +235,7 @@ def jump():
         draw(
             frame_size, (px1 // 2, 0 + offset), (px0, py0), i
         )  # From top middle to top left
+    draw_stop_markers(2)
 
 
 def sin_wave():
@@ -225,6 +254,7 @@ def sin_wave():
             break
         center = (i, amp)
         draw(frame_size, center, center, min(frame_size))
+    draw_stop_markers(2)
 
 
 def triangle_wave():
@@ -249,6 +279,15 @@ def triangle_wave():
         stop = (i, amp)
         draw(frame_size, start, stop, 100)
         start = stop
+    draw_stop_markers(2)
+
+
+def draw_stop_markers(sec):
+    image = get_initial_image()
+    for _ in range(sec * fps):
+        img = deepcopy(image)
+        img = get_image_with_stop_markers(img, (px, py), 10)
+        out.write(img)
 
 
 pursuit()
