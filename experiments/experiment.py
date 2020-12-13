@@ -88,7 +88,7 @@ def draw_switch(frame_size, start, end, speed):
     )  # moves from center to center, basically not moving at all
 
 
-try:
+def pursuit():
     # Pursuit (Slow movements)
     print("Pursuit...")
     for i in speeds:
@@ -131,6 +131,8 @@ try:
             frame_size, (0, frame_size[1]), (frame_size[0], 0), i
         )  # From left down to right top
 
+
+def fixation():
     print("Fixation...")
     # Fixation
     for i in range(10):
@@ -140,6 +142,8 @@ try:
             frame_size, center, center, speeds[-3]
         )  # moves from center to center, basically not moving at all
 
+
+def saccade():
     print("Saccade...")
     # Saccade
     repeat = 2
@@ -183,6 +187,8 @@ try:
             frame_size, (px3, py3), (px2, py2), speeds[-1]
         )  # down left to down right
 
+
+def jump():
     print("Sudden Jump...")
     # From bottom to middle
     for i in speeds:
@@ -202,50 +208,54 @@ try:
             frame_size, (px1 // 2, 0 + offset), (px0, py0), i
         )  # From top middle to top left
 
-    def draw_sin():
-        print("Sin Wave...")
-        number_of_wave = 4
-        max_amplitude = frame_size[1] // 3
-        x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
-        amplitude = np.sin(x)
-        amplitude = amplitude * max_amplitude
-        amplitude = amplitude + frame_size[1] // 2
-        for i in range(0, len(amplitude), 4):
-            amp = int(amplitude[i])
-            if i < offset:
-                continue
-            if i > frame_size[0] - offset:
-                break
-            center = (i, amp)
-            draw(frame_size, center, center, min(frame_size))
 
-    def draw_triangle():
-        print("Triangle Wave...")
-        number_of_wave = 4
-        max_amplitude = frame_size[1] // 3
-        x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
-        amplitude = np.sin(x)
-        amplitude = amplitude * max_amplitude
-        amplitude = amplitude + frame_size[1] // 2
-        draw_now = False
-        for i in range(0, len(amplitude), 50):
-            amp = int(amplitude[i])
-            if i < offset:
-                continue
-            if i > frame_size[0] - offset:
-                break
-            if draw_now == False:
-                start = (i, amp)
-                draw_now = True
-                continue
-            stop = (i, amp)
-            draw(frame_size, start, stop, 100)
-            start = stop
+def sin_wave():
+    print("Sin Wave...")
+    number_of_wave = 4
+    max_amplitude = frame_size[1] // 3
+    x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
+    amplitude = np.sin(x)
+    amplitude = amplitude * max_amplitude
+    amplitude = amplitude + frame_size[1] // 2
+    for i in range(0, len(amplitude), 4):
+        amp = int(amplitude[i])
+        if i < offset:
+            continue
+        if i > frame_size[0] - offset:
+            break
+        center = (i, amp)
+        draw(frame_size, center, center, min(frame_size))
 
-    draw_sin()
-    draw_triangle()
 
-except Exception as ex:
-    print(ex)
-finally:
-    out.release()
+def triangle_wave():
+    print("Triangle Wave...")
+    number_of_wave = 4
+    max_amplitude = frame_size[1] // 3
+    x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
+    amplitude = np.sin(x)
+    amplitude = amplitude * max_amplitude
+    amplitude = amplitude + frame_size[1] // 2
+    draw_now = False
+    for i in range(0, len(amplitude), 50):
+        amp = int(amplitude[i])
+        if i < offset:
+            continue
+        if i > frame_size[0] - offset:
+            break
+        if draw_now == False:
+            start = (i, amp)
+            draw_now = True
+            continue
+        stop = (i, amp)
+        draw(frame_size, start, stop, 100)
+        start = stop
+
+
+pursuit()
+fixation()
+saccade()
+jump()
+sin_wave()
+triangle_wave()
+
+out.release()
