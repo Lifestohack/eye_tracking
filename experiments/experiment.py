@@ -7,9 +7,9 @@ background = (255, 255, 255)  # white
 calibration_marker_color = (0, 0, 0)  # black
 outer_circle_radius = 20
 outer_circle_thickness = 7
-speeds = [1, 3, 5, 7, 11]
+speeds = [3, 5, 7, 11, 13]
 calibration_markers_scale = 2
-frame_size = (500, 500)
+frame_size = (1280, 720)  # width, height
 offset = (outer_circle_radius * calibration_markers_scale) + (
     outer_circle_thickness * calibration_markers_scale
 )
@@ -26,6 +26,8 @@ py2 = frame_size[1] - offset
 px3 = 0 + offset
 py3 = frame_size[1] - offset
 
+px = frame_size[0] // 2
+py = frame_size[1] // 2
 
 out = cv2.VideoWriter(
     "calibration_markers.avi", cv2.VideoWriter_fourcc(*"DIVX"), 30, frame_size
@@ -33,11 +35,11 @@ out = cv2.VideoWriter(
 
 
 def get_initial_image():
-    a = np.ones((frame_size[0], frame_size[1])) * background[0]
-    b = np.ones((frame_size[0], frame_size[1])) * background[1]
-    c = np.ones((frame_size[0], frame_size[1])) * background[2]
+    a = np.ones((frame_size[1], frame_size[0])) * background[0]
+    b = np.ones((frame_size[1], frame_size[0])) * background[1]
+    c = np.ones((frame_size[1], frame_size[0])) * background[2]
     background_color = np.dstack((a, b, c)).astype(np.uint8)
-    foo = np.ones((frame_size[0], frame_size[1], 3), dtype=np.uint8)
+    foo = np.ones((frame_size[1], frame_size[0], 3), dtype=np.uint8)
     foo = foo * background_color
     return foo
 
@@ -68,7 +70,7 @@ def getEquidistantPoints(p1, p2, n):
 
 def draw(frame_size, start, end, speed):
     image = get_initial_image()
-    center_markers = getEquidistantPoints(start, end, max(frame_size))
+    center_markers = getEquidistantPoints(start, end, min(frame_size))
     for center_marker in center_markers[::speed]:
         img = deepcopy(image)
         img = get_image_with_markers(
@@ -79,95 +81,171 @@ def draw(frame_size, start, end, speed):
 
 def draw_switch(frame_size, start, end, speed):
     draw(
-        frame_size, start, start, speeds[-1]
+        frame_size, start, start, speed
     )  # moves from center to center, basically not moving at all
     draw(
-        frame_size, end, end, speeds[-1]
+        frame_size, end, end, speed
     )  # moves from center to center, basically not moving at all
 
 
-# Pursuit (Slow movements)
-for i in speeds:
-    draw(
-        frame_size, (frame_size[0] // 2, 0), (frame_size[0] // 2, frame_size[1]), i
-    )  # From up to down
+try:
+    # Pursuit (Slow movements)
+    print("Pursuit...")
+    for i in speeds:
+        draw(
+            frame_size, (frame_size[0] // 2, 0), (frame_size[0] // 2, frame_size[1]), i
+        )  # From up to down
 
-for i in speeds:
-    draw(
-        frame_size, (frame_size[0] // 2, frame_size[1]), (frame_size[0] // 2, 0), i
-    )  # From down to up
+    for i in speeds:
+        draw(
+            frame_size, (frame_size[0] // 2, frame_size[1]), (frame_size[0] // 2, 0), i
+        )  # From down to up
 
-for i in speeds:
-    draw(
-        frame_size, (0, frame_size[1] // 2), (frame_size[0], frame_size[1] // 2), i
-    )  # From left to right
+    for i in speeds:
+        draw(
+            frame_size, (0, frame_size[1] // 2), (frame_size[0], frame_size[1] // 2), i
+        )  # From left to right
 
-for i in speeds:
-    draw(
-        frame_size, (frame_size[0], frame_size[1] // 2), (0, frame_size[1] // 2), i
-    )  # From right to left
+    for i in speeds:
+        draw(
+            frame_size, (frame_size[0], frame_size[1] // 2), (0, frame_size[1] // 2), i
+        )  # From right to left
 
-for i in speeds:
-    draw(
-        frame_size, (0, 0), (frame_size[0], frame_size[1]), i
-    )  # From left top to right down
+    for i in speeds:
+        draw(
+            frame_size, (0, 0), (frame_size[0], frame_size[1]), i
+        )  # From left top to right down
 
-for i in speeds:
-    draw(
-        frame_size, (frame_size[0], frame_size[1]), (0, 0), i
-    )  # From right down to left top
+    for i in speeds:
+        draw(
+            frame_size, (frame_size[0], frame_size[1]), (0, 0), i
+        )  # From right down to left top
 
-for i in speeds:
-    draw(
-        frame_size, (frame_size[0], 0), (0, frame_size[1]), i
-    )  # From right top to left down
+    for i in speeds:
+        draw(
+            frame_size, (frame_size[0], 0), (0, frame_size[1]), i
+        )  # From right top to left down
 
-for i in speeds:
-    draw(
-        frame_size, (0, frame_size[1]), (frame_size[0], 0), i
-    )  # From left down to right top
+    for i in speeds:
+        draw(
+            frame_size, (0, frame_size[1]), (frame_size[0], 0), i
+        )  # From left down to right top
 
-# Fixation
-for i in range(10):
-    random.seed(i)
-    center = (random.randint(0, frame_size[0]), random.randint(0, frame_size[1]))
-    draw(
-        frame_size, center, center, speeds[-3]
-    )  # moves from center to center, basically not moving at all
+    print("Fixation...")
+    # Fixation
+    for i in range(10):
+        random.seed(i)
+        center = (random.randint(0, frame_size[0]), random.randint(0, frame_size[1]))
+        draw(
+            frame_size, center, center, speeds[-3]
+        )  # moves from center to center, basically not moving at all
 
-# Saccade
-repeat = 2
-for i in range(repeat):
-    start = (0 + offset, frame_size[1] // 2)  # left middle
-    end = (frame_size[0] - offset, frame_size[1] // 2)  # right middle
-    draw_switch(frame_size, start, end, speeds[-1])
+    print("Saccade...")
+    # Saccade
+    repeat = 2
+    for i in range(repeat):
+        start = (0 + offset, frame_size[1] // 2)  # left middle
+        end = (frame_size[0] - offset, frame_size[1] // 2)  # right middle
+        draw_switch(frame_size, start, end, speeds[-1])
 
-for i in range(repeat):
-    start = (frame_size[0] // 2, 0 + offset)  # top middle
-    end = (frame_size[0] // 2, frame_size[1] - offset)  # down middle
-    draw_switch(frame_size, start, end, speeds[-1])
+    for i in range(repeat):
+        start = (frame_size[0] // 2, 0 + offset)  # top middle
+        end = (frame_size[0] // 2, frame_size[1] - offset)  # down middle
+        draw_switch(frame_size, start, end, speeds[-1])
 
-for i in range(repeat):
-    start = (0 + offset, 0 + offset)  # top left
-    end = (frame_size[0] - offset, frame_size[1] - offset)  # down right
-    draw_switch(frame_size, start, end, speeds[-1])
+    for i in range(repeat):
+        start = (0 + offset, 0 + offset)  # top left
+        end = (frame_size[0] - offset, frame_size[1] - offset)  # down right
+        draw_switch(frame_size, start, end, speeds[-1])
 
-for i in range(repeat):
-    start = (frame_size[0] - offset, 0 + offset)  # top right
-    end = (0 + offset, frame_size[1] - offset)  # down left
-    draw_switch(frame_size, start, end, speeds[-1])
+    for i in range(repeat):
+        start = (frame_size[0] - offset, 0 + offset)  # top right
+        end = (0 + offset, frame_size[1] - offset)  # down left
+        draw_switch(frame_size, start, end, speeds[-1])
 
-for i in range(repeat):
-    draw_switch(frame_size, (px0, py0), (px3, py3), speeds[-1])  # top left to down left
-for i in range(repeat):
-    draw_switch(
-        frame_size, (px1, py1), (px2, py2), speeds[-1]
-    )  # top right to down right
-for i in range(repeat):
-    draw_switch(frame_size, (px0, py0), (px1, py1), speeds[-1])  # top left to top right
-for i in range(repeat):
-    draw_switch(
-        frame_size, (px3, py3), (px2, py2), speeds[-1]
-    )  # down left to down right
+    for i in range(repeat):
+        draw_switch(
+            frame_size, (px0, py0), (px3, py3), speeds[-1]
+        )  # top left to down left
 
-out.release()
+    for i in range(repeat):
+        draw_switch(
+            frame_size, (px1, py1), (px2, py2), speeds[-1]
+        )  # top right to down right
+
+    for i in range(repeat):
+        draw_switch(
+            frame_size, (px0, py0), (px1, py1), speeds[-1]
+        )  # top left to top right
+
+    for i in range(repeat):
+        draw_switch(
+            frame_size, (px3, py3), (px2, py2), speeds[-1]
+        )  # down left to down right
+
+    print("Sudden Jump...")
+    # From bottom to middle
+    for i in speeds:
+        draw(
+            frame_size, (px3, py3), (px2 // 2, py2), i
+        )  # From left down to center of image
+        draw(
+            frame_size, (px, py), (px2, frame_size[1] // 2), i
+        )  # From left down to center of image
+
+    # From middle to top
+    for i in speeds:
+        draw(
+            frame_size, (px2, py2 // 2), (px, py), i
+        )  # From middle left to center of image
+        draw(
+            frame_size, (px1 // 2, 0 + offset), (px0, py0), i
+        )  # From top middle to top left
+
+    def draw_sin():
+        print("Sin Wave...")
+        number_of_wave = 4
+        max_amplitude = frame_size[1] // 3
+        x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
+        amplitude = np.sin(x)
+        amplitude = amplitude * max_amplitude
+        amplitude = amplitude + frame_size[1] // 2
+        for i in range(0, len(amplitude), 4):
+            amp = int(amplitude[i])
+            if i < offset:
+                continue
+            if i > frame_size[0] - offset:
+                break
+            center = (i, amp)
+            draw(frame_size, center, center, min(frame_size))
+
+    def draw_triangle():
+        print("Triangle Wave...")
+        number_of_wave = 4
+        max_amplitude = frame_size[1] // 3
+        x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
+        amplitude = np.sin(x)
+        amplitude = amplitude * max_amplitude
+        amplitude = amplitude + frame_size[1] // 2
+        draw_now = False
+        for i in range(0, len(amplitude), 50):
+            amp = int(amplitude[i])
+            if i < offset:
+                continue
+            if i > frame_size[0] - offset:
+                break
+            if draw_now == False:
+                start = (i, amp)
+                draw_now = True
+                continue
+            stop = (i, amp)
+            draw(frame_size, start, stop, 100)
+            start = stop
+
+    draw_sin()
+    draw_triangle()
+
+except Exception as ex:
+    print(ex)
+finally:
+    out.release()
