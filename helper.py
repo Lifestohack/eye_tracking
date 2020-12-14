@@ -24,7 +24,7 @@ def get_frames(path):
         if ret is False:
             break
         yield frame
-        print((world_index / total_frame) * 100)
+        print(world_index if total_frame == -1 else (world_index / total_frame) * 100)
         world_index += 1
     cap.release()
 
