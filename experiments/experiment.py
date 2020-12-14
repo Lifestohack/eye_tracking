@@ -4,11 +4,12 @@ import random
 from copy import deepcopy
 
 fps = 30
+pause_between_experiments = 3  # secs
 background = (255, 255, 255)  # white
 calibration_marker_color = (0, 0, 0)  # black
 outer_circle_radius = 20
 outer_circle_thickness = 7
-speeds = [3, 5, 7, 11, 13]
+speeds = [7, 13]
 calibration_markers_scale = 2
 frame_size = (1280, 720)  # width, height
 offset = (outer_circle_radius * calibration_markers_scale) + (
@@ -121,41 +122,41 @@ def pursuit():
             frame_size, (frame_size[0] // 2, 0), (frame_size[0] // 2, frame_size[1]), i
         )  # From up to down
 
-    for i in speeds:
-        draw(
-            frame_size, (frame_size[0] // 2, frame_size[1]), (frame_size[0] // 2, 0), i
-        )  # From down to up
+    # for i in speeds:
+    #     draw(
+    #         frame_size, (frame_size[0] // 2, frame_size[1]), (frame_size[0] // 2, 0), i
+    #     )  # From down to up
 
     for i in speeds:
         draw(
             frame_size, (0, frame_size[1] // 2), (frame_size[0], frame_size[1] // 2), i
         )  # From left to right
 
-    for i in speeds:
-        draw(
-            frame_size, (frame_size[0], frame_size[1] // 2), (0, frame_size[1] // 2), i
-        )  # From right to left
+    # for i in speeds:
+    #     draw(
+    #         frame_size, (frame_size[0], frame_size[1] // 2), (0, frame_size[1] // 2), i
+    #     )  # From right to left
 
     for i in speeds:
         draw(
             frame_size, (0, 0), (frame_size[0], frame_size[1]), i
         )  # From left top to right down
 
-    for i in speeds:
-        draw(
-            frame_size, (frame_size[0], frame_size[1]), (0, 0), i
-        )  # From right down to left top
+    # for i in speeds:
+    #     draw(
+    #         frame_size, (frame_size[0], frame_size[1]), (0, 0), i
+    #     )  # From right down to left top
 
     for i in speeds:
         draw(
             frame_size, (frame_size[0], 0), (0, frame_size[1]), i
         )  # From right top to left down
 
-    for i in speeds:
-        draw(
-            frame_size, (0, frame_size[1]), (frame_size[0], 0), i
-        )  # From left down to right top
-    draw_stop_markers(2)
+    # for i in speeds:
+    #    draw(
+    #        frame_size, (0, frame_size[1]), (frame_size[0], 0), i
+    #    )  # From left down to right top
+    draw_stop_markers(pause_between_experiments)
 
 
 def fixation():
@@ -165,15 +166,15 @@ def fixation():
         random.seed(i)
         center = (random.randint(0, frame_size[0]), random.randint(0, frame_size[1]))
         draw(
-            frame_size, center, center, speeds[-3]
+            frame_size, center, center, speeds[-1]
         )  # moves from center to center, basically not moving at all
-    draw_stop_markers(2)
+    draw_stop_markers(pause_between_experiments)
 
 
 def saccade():
     print("Saccade...")
     # Saccade
-    repeat = 2
+    repeat = 1
     for i in range(repeat):
         start = (0 + offset, frame_size[1] // 2)  # left middle
         end = (frame_size[0] - offset, frame_size[1] // 2)  # right middle
@@ -213,13 +214,14 @@ def saccade():
         draw_switch(
             frame_size, (px3, py3), (px2, py2), speeds[-1]
         )  # down left to down right
-    draw_stop_markers(2)
+    draw_stop_markers(pause_between_experiments)
 
 
 def jump():
     print("Sudden Jump...")
     # From bottom to middle
     for i in speeds:
+        i = i * 2
         draw(
             frame_size, (px3, py3), (px2 // 2, py2), i
         )  # From left down to center of image
@@ -235,18 +237,18 @@ def jump():
         draw(
             frame_size, (px1 // 2, 0 + offset), (px0, py0), i
         )  # From top middle to top left
-    draw_stop_markers(2)
+    draw_stop_markers(pause_between_experiments)
 
 
 def sin_wave():
     print("Sin Wave...")
-    number_of_wave = 4
+    number_of_wave = 2
     max_amplitude = frame_size[1] // 3
     x = np.linspace(0, number_of_wave * np.pi, num=frame_size[0])  # start,stop,step
     amplitude = np.sin(x)
     amplitude = amplitude * max_amplitude
     amplitude = amplitude + frame_size[1] // 2
-    for i in range(0, len(amplitude), 4):
+    for i in range(0, len(amplitude), 8):
         amp = int(amplitude[i])
         if i < offset:
             continue
@@ -254,7 +256,7 @@ def sin_wave():
             break
         center = (i, amp)
         draw(frame_size, center, center, min(frame_size))
-    draw_stop_markers(2)
+    draw_stop_markers(pause_between_experiments)
 
 
 def triangle_wave():
@@ -279,14 +281,14 @@ def triangle_wave():
         stop = (i, amp)
         draw(frame_size, start, stop, 100)
         start = stop
-    draw_stop_markers(2)
+    draw_stop_markers(pause_between_experiments)
 
 
 def draw_stop_markers(sec):
     image = get_initial_image()
     for _ in range(sec * fps):
         img = deepcopy(image)
-        img = get_image_with_stop_markers(img, (px, py), 10)
+        img = get_image_with_stop_markers(img, (px, py), 5)
         out.write(img)
 
 
