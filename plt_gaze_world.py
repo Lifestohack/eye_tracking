@@ -10,23 +10,17 @@ from helper import (
     get_frames,
     get_calibration_markers_list,
     find_circle_marker,
+    get_relevant_markers,
 )
 
 sample_paths = get_sample_paths()
-sample_paths = ["data/sample1"]
+sample_paths = ["data/peterpromise"]
 video_sample = os.path.join(sample_paths[-1], "world.mp4")
 marker_sample = os.path.join(sample_paths[-1], "calibration_markers.csv")
 
 markers = get_calibration_markers_list(marker_sample)
-frames = get_frames(video_sample)
-world_index = 0
 cap = cv2.VideoCapture(video_sample)
 length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-
-def get_markers(world_index):
-    filtered_markers_pos = [x for x in markers if int(x["world_index"]) == world_index]
-    return filtered_markers_pos
 
 
 def draw(img):
@@ -42,7 +36,7 @@ def draw_position_circle(img, frame_index):
     # find_markers = find_pupil_circle_marker1(img)
     # find_markers = find_circle_marker(img)
     if find_markers is None:
-        find_markers = get_markers(frame_index)
+        find_markers = get_relevant_markers(markers, frame_index)
     no_draw = False
     for ellipses_ in find_markers:
         ellipses = ellipses_["ellipse"]

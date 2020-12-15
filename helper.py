@@ -79,3 +79,7 @@ def find_circle_marker(img):
             marker_list.append(marker_dict)
             print(marker_dict["marker_type"])
     return marker_list
+
+
+def get_relevant_markers(markers, world_index):
+    return [x for x in markers if int(x["world_index"]) == world_index]
