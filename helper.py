@@ -1,6 +1,7 @@
 import os
 import cv2
 import csv
+import numpy as np
 
 samples_path = "data"
 gaze = "gaze_positions.csv"
@@ -11,7 +12,7 @@ def get_sample_paths(path=None):
     if path is None:
         path = samples_path
     samples = os.listdir(path)
-    samples = [os.path.join(path, sample) for sample in samples if "sample" in sample]
+    samples = [os.path.join(path, sample) for sample in samples]
     return samples
 
 
@@ -47,3 +48,26 @@ def get_calibration_markers_list(path=None):
         for row in reader:
             markers.append(row)
     return markers
+
+
+def find_circle_marker(img):
+    img = cv2.medianBlur(img,5)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT,1,700,
+                                param1=300,param2=30,minRadius=15,maxRadius=60)
+    
+    marker_list = []
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            marker_dict = {}
+            midpoint = img[i[1]][i[0]]
+            bgr_sum = sum(midpoint)
+            if bgr_sum > 400:
+                marker_dict['marker_type'] = "Stop"
+            else:
+                marker_dict['marker_type'] = "Ref"
+            marker_dict['ellipses'] = [((i[0],i[1]),)]
+            marker_list.append(marker_dict)
+            print(marker_dict['marker_type'])
+    return marker_list
