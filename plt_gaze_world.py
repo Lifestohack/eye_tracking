@@ -1,33 +1,32 @@
 import os
 import cv2
 import numpy as np
-from helper import get_sample_paths, get_frames, get_calibration_markers_list
+from external.circle_detector import find_pupil_circle_marker
+from external.circle_detector1 import (
+    find_pupil_circle_marker as find_pupil_circle_marker1,
+)
+from helper import (
+    get_sample_paths,
+    get_frames,
+    get_calibration_markers_list,
+    find_circle_marker,
+)
 
 sample_paths = get_sample_paths()
+sample_paths = ["data/sample1"]
 video_sample = os.path.join(sample_paths[-1], "world.mp4")
 marker_sample = os.path.join(sample_paths[-1], "calibration_markers.csv")
 
-markers_pos = get_calibration_markers_list(marker_sample)
+markers = get_calibration_markers_list(marker_sample)
 frames = get_frames(video_sample)
+world_index = 0
+cap = cv2.VideoCapture(video_sample)
+length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 
 def get_markers(world_index):
-    markers = []
-    first_added = False
-    for index, marker in enumerate(markers_pos):
-        marker_world_index = int(marker["world_index"])
-        if first_added == False and world_index < marker_world_index:
-            break
-        elif world_index == marker_world_index:
-            markers.append(marker)
-            markers_pos.pop(index)
-            first_added = True
-        elif world_index > marker_world_index:
-            markers_pos.pop(index)
-            break
-        else:
-            break
-    return markers
+    filtered_markers_pos = [x for x in markers if int(x["world_index"]) == world_index]
+    return filtered_markers_pos
 
 
 def draw(img):
@@ -36,16 +35,37 @@ def draw(img):
         return
 
 
-for world_index, frame in enumerate(frames):
-    # marker_index = int(markers_pos[world_index]['world_index'])
-    markers = get_markers(world_index)
+def draw_position_circle(img, frame_index):
+    find_markers = None
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # find_markers = find_pupil_circle_marker(gray, scale=1)
+    # find_markers = find_pupil_circle_marker1(img)
+    # find_markers = find_circle_marker(img)
+    if find_markers is None:
+        find_markers = get_markers(frame_index)
     no_draw = False
-    for marker in markers:
-        center = marker["ellipses_center"].strip("()").split(", ")
-        center = (round(int(float(center[0]))), round(int(float(center[1]))))
-        frame = cv2.circle(frame, center, 10, (0, 0, 255), 2)
-        draw(frame)
+    for ellipses_ in find_markers:
+        ellipses = ellipses_["ellipse"]
+        if ellipses_["marker_type"] == "Stop":
+            circle_color = (0, 0, 255)
+        else:
+            circle_color = (0, 255, 0)
+        # print(ellipses_['marker_type'])
+        center = []
+        if isinstance(ellipses, str):
+            center = ellipses.strip("()").split(", ")
+            center = ((float(center[0])), float(center[1]))
+        else:
+            center = ellipses[0][0]
+        center = np.uint16(np.around(center))
+        img = cv2.circle(img, tuple(center), 10, circle_color, 2)
+        draw(img)
         no_draw = True
     if no_draw == False:
-        draw(frame)
-    pass
+        draw(img)
+
+
+while cap.isOpened():
+    err, frame = cap.read()
+    frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+    draw_position_circle(frame, frame_number)
