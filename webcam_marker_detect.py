@@ -1,11 +1,17 @@
 import cv2
-from helper import get_sample_paths, get_frames, get_calibration_markers_list
+from helper import (
+    get_sample_paths,
+    get_frames,
+    get_calibration_markers_list,
+    find_circle_marker,
+)
 from external.circle_detector import find_pupil_circle_marker
 
 
 def get_raw_data(sample):
     for world_index, frame in enumerate(get_frames(sample)):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # ellipses_list = find_circle_marker(gray)
         ellipses_list = find_pupil_circle_marker(gray, scale=1)
         marker_list = []
         for ellipses_ in ellipses_list:
@@ -29,7 +35,8 @@ def draw(img):
 
 
 if __name__ == "__main__":
-    for marker_list, frame in get_raw_data(2):
+    # Point the camera to that marker to see if it detects the marker
+    for marker_list, frame in get_raw_data(0):
         no_draw = False
         for marker in marker_list:
             center = (
