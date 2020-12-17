@@ -83,3 +83,20 @@ def find_circle_marker(img):
 
 def get_relevant_markers(markers, world_index):
     return [x for x in markers if int(x["world_index"]) == world_index]
+
+
+def get_gaze_data(path=None):
+    if path is None:
+        path = samples_path
+
+
+def get_relevant_samples_path(filename, overwrite=False):
+    all_samples = get_sample_paths()
+    if overwrite:
+        return all_samples
+    samples_to_detect_markers = []
+    for sample in all_samples:
+        filenames = os.listdir(sample)
+        if not marker_filename in filenames:
+            samples_to_detect_markers.append(sample)
+    return samples_to_detect_markers

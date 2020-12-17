@@ -59,7 +59,10 @@ def draw_position_circle(img, frame_index):
         draw(img)
 
 
+gaze_sample_path = os.path.join(sample_paths[-1], "exports/000/gaze_positions.csv")
+gaze_sample = get_calibration_markers_list(gaze_sample_path)
+
 while cap.isOpened():
     err, frame = cap.read()
     frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-    draw_position_circle(frame, frame_number)
+    draw_position_circle(frame, frame_number - 1)

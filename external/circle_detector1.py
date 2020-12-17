@@ -116,16 +116,16 @@ def find_pupil_circle_marker(img, find_v2_marker=True,find_v3_marker=True):
             center = np.uint16(np.around(circle['img_pos']))
             midpoint = img[center[1]][center[0]]
             bgr_sum = sum(midpoint)
-            print(bgr_sum)
+            #print(bgr_sum)
             if bgr_sum > 200:
                 marker_dict['marker_type'] = "Stop"
             else:
                 marker_dict['marker_type'] = "Ref"
-            marker_dict['ellipse'] = [((center[0],center[1]),)]
+            marker_dict['ellipse'] = [((circle['img_pos'][0],circle['img_pos'][1]),)]
             marker_list_dict.append(marker_dict)
-            print(marker_dict['marker_type'])
-    if len(marker_list_dict) == 0:
-        print("nope")
+            #print(marker_dict['marker_type'])
+    #if len(marker_list_dict) == 0:
+    #    print("nope")
     return marker_list_dict
 
 def add_parents(child,graph,family):

@@ -40,7 +40,7 @@ def export_raw_data_to_csv(sample, save_file_name):
     with open(save_path, "w", newline="") as csvfile:
         fieldnames = [
             "world_index",
-            "ellipses_center",
+            "ellipse",
             "marker_type",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
