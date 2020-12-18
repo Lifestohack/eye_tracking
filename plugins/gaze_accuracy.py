@@ -8,6 +8,9 @@ import msgpack
 import file_methods as fm
 import csv
 from video_capture import EndofVideoError
+import cv2
+import numpy as np
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +29,10 @@ class Gaze_Accuracy(Plugin):
         super().__init__(g_pool)
         self.frames = {}
         # self.export()
+        video_path = self.g_pool.capture.source_path
+        self.export_calibration_markers(
+            video_path, intrinsics=self.g_pool.capture.intrinsics
+        )
 
     def export(self):
         gaze_data = self.g_pool.gaze_positions.data
@@ -58,6 +65,10 @@ class Gaze_Accuracy(Plugin):
         # pass
 
     def recent_events(self, events):
+        # asdf(events)
+        pass
+
+    def asdf(self, events):
         frame_index = events["frame"].index
         img = events["frame"].gray
         if not frame_index in self.frames:
@@ -116,8 +127,86 @@ class Gaze_Accuracy(Plugin):
             # cv2.imshow("img", img)
             # cv2.waitKey(1)
 
-    pass
-
     def init_ui(self):
         self.add_menu()
         self.menu.label = "Gaze Accuracy"
+        self.menu.append(
+            ui.Info_Text(
+                "Calibration marker will be automatically exported "
+                "if this plugin is activated. "
+            )
+        )
+
+    def deinit_ui(self):
+        self.remove_menu()
+
+    def write_to_csv(self, save_path, locations):
+        save_path = os.path.join(save_path, "gaze_markers_instrincsts.csv")
+        with open(save_path, "w", newline="") as csvfile:
+            fieldnames = ["world_index", "ellipse", "marker_type"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(locations)
+
+    def export_calibration_markers(self, video_path, intrinsics):
+        markers = self.get_location_from_frame(video_path)
+        locations = [sample[0]["ellipses"] for sample in markers]
+        undistorted_3d = intrinsics.unprojectPoints(locations, normalize=True)
+        calibration_markers = []
+        for dis, loc in zip(undistorted_3d, markers):
+            temp = {}
+            temp["ellipse"] = dis
+            temp["world_index"] = loc[0]["world_index"]
+            temp["marker_type"] = loc[0]["marker_type"]
+            calibration_markers.append(temp)
+        save_path = os.path.dirname(video_path)
+        self.write_to_csv(save_path, calibration_markers)
+
+    def find_circle_marker(self, img, frame_num):
+        img = cv2.medianBlur(img, 5)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(
+            gray,
+            cv2.HOUGH_GRADIENT,
+            1,
+            700,
+            param1=300,
+            param2=30,
+            minRadius=15,
+            maxRadius=100,
+        )
+
+        marker_list = []
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            for i in circles[0, :]:
+                marker_dict = {}
+                midpoint = img[i[1]][i[0]]
+                bgr_sum = sum(midpoint)
+                if bgr_sum > 400:
+                    marker_dict["marker_type"] = "Stop"
+                else:
+                    marker_dict["marker_type"] = "Ref"
+                marker_dict["ellipses"] = [(i[0], i[1])]
+                marker_dict["world_index"] = frame_num
+                marker_list.append(marker_dict)
+        return marker_list
+
+    def get_location_from_frame(self, video_path):
+        locations = []
+        cap = cv2.VideoCapture(video_path)
+        frame_num = 0
+        frames_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        while cap.isOpened():
+            err, frame = cap.read()
+            if not err:
+                break
+            print((frame_num / frames_count) * 100)
+            marker = self.find_circle_marker(frame, frame_num)
+            if len(marker) > 0:
+                locations.append(marker)
+            # if frame_num>50:
+            #     break
+            frame_num += 1
+        cap.release()
+        return locations
