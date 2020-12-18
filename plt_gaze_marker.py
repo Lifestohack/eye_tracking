@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 sample_paths = get_sample_paths()
-sample = "data/diwas"
+sample = "data/sample1"
 video_sample = os.path.join(sample, "world.mp4")
 
 
