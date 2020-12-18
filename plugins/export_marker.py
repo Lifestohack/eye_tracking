@@ -129,7 +129,7 @@ class Gaze_Accuracy(Plugin):
 
     def init_ui(self):
         self.add_menu()
-        self.menu.label = "Gaze Accuracy"
+        self.menu.label = "Export Markers"
         self.menu.append(
             ui.Info_Text(
                 "Calibration marker will be automatically exported "
@@ -141,21 +141,28 @@ class Gaze_Accuracy(Plugin):
         self.remove_menu()
 
     def write_to_csv(self, save_path, locations):
-        save_path = os.path.join(save_path, "gaze_markers_instrincsts.csv")
+        save_path = os.path.join(save_path, "markers_norm_3d.csv")
         with open(save_path, "w", newline="") as csvfile:
-            fieldnames = ["world_index", "ellipse", "marker_type"]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            fieldnames = ["world_index", "marker", "marker_norm", "marker_type"]
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=fieldnames,
+                quoting=csv.QUOTE_NONE,
+                delimiter=",",
+                quotechar="",
+            )
             writer.writeheader()
             writer.writerows(locations)
 
     def export_calibration_markers(self, video_path, intrinsics):
         markers = self.get_location_from_frame(video_path)
-        locations = [sample[0]["ellipses"] for sample in markers]
+        locations = [sample[0]["marker"] for sample in markers]
         undistorted_3d = intrinsics.unprojectPoints(locations, normalize=True)
         calibration_markers = []
         for dis, loc in zip(undistorted_3d, markers):
             temp = {}
-            temp["ellipse"] = dis
+            temp["marker_norm"] = dis
+            temp["marker"] = loc[0]["marker"]
             temp["world_index"] = loc[0]["world_index"]
             temp["marker_type"] = loc[0]["marker_type"]
             calibration_markers.append(temp)
@@ -187,7 +194,7 @@ class Gaze_Accuracy(Plugin):
                     marker_dict["marker_type"] = "Stop"
                 else:
                     marker_dict["marker_type"] = "Ref"
-                marker_dict["ellipses"] = [(i[0], i[1])]
+                marker_dict["marker"] = np.array([i[0], i[1]])
                 marker_dict["world_index"] = frame_num
                 marker_list.append(marker_dict)
         return marker_list
@@ -205,7 +212,7 @@ class Gaze_Accuracy(Plugin):
             marker = self.find_circle_marker(frame, frame_num)
             if len(marker) > 0:
                 locations.append(marker)
-            # if frame_num>50:
+            # if frame_num>10:
             #     break
             frame_num += 1
         cap.release()
